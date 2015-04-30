@@ -9,5 +9,5 @@ The library is an experiment. The goal is to create something that is very
 composeable, like [Plug][1]. It will provide adapters for different Erlang
 HTTP clients. The first adapter will be for [Gun][2].
 
-[Plug][1]: https://github.com/elixir-lang/plug
-[Gun][2]: https://github.com/ninenines/gun
+[1]: https://github.com/elixir-lang/plug
+[2]: https://github.com/ninenines/gun
