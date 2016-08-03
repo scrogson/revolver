@@ -17,13 +17,14 @@ defmodule GitHub.Client do
 end
 
 defmodule GitHub.Repos do
-  use Revolver.Conn
+  import GitHub.Client
+  import Revolver.Conn
 
   @doc """
   Fetches a list of repos for the give username.
   """
   def list!(user) do
-    conn("/users/#{user}/repos") |> GitHub.Client.get!
+    get! conn("/users/#{user}/repos")
   end
 
   @doc """
@@ -35,16 +36,15 @@ defmodule GitHub.Repos do
                                  gitignore_template license_template)a)
     conn("/user/repos")
     |> put_req_body(params)
-    |> put_authorization("Bearer", token)
-    |> GitHub.Client.post!
+    |> put_req_header("authorization", "Bearer " <> token)
+    |> post!
   end
 end
 
 # config/config.exs
 config :github, GitHub.Client,
   adapter: Revolver.Adapters.Hackney,
-  host: "api.github.com",
-  scheme: :https,
+  endpoint: "https://api.github.com",
   headers: [
     {"accept", "application/vnd.github.v3+json"},
     {"content-type", "application/json"}
@@ -57,7 +57,7 @@ config :revolver,
     "application/vnd.github.v3+json" => Poison
   }
 
-conn = GitHub.Issue.list!("scrogson")
+conn = GitHub.Repos.list!("scrogson")
 
 IO.inspect conn
 #=> %Revolver.Conn{host: "api.github.com", port: 443, scheme: :https, ...}
