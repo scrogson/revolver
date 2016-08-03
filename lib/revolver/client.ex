@@ -26,10 +26,10 @@ defmodule Revolver.Client do
   end
 
   defp generate_request_functions(opts) do
-    quote do
-      @otp_app unquote(opts)[:otp_app] || raise "Revolver.Client expects :otp_app to be given"
+    quote bind_quoted: [opts: opts] do
+      @otp_app opts[:otp_app] || raise "Revolver.Client expects :otp_app to be given"
       @config Application.get_env(@otp_app, __MODULE__, [])
-      @adapter unquote(opts)[:adapter] || @config[:adapter]
+      @adapter opts[:adapter] || @config[:adapter]
 
       def config, do: @config
       def adapter, do: @adapter
@@ -39,16 +39,67 @@ defmodule Revolver.Client do
       end
 
       def request(conn, opts \\ []) do
-        {body, opts} = Keyword.pop(opts, :body, conn.req_body)
-        {meth, opts} = Keyword.pop(opts, :method, conn.method)
-
-        @adapter.send_req(%{conn | method: meth, req_body: body})
+        with {:ok, conn} <- encode_req_body(conn),
+             {:ok, conn} <- @adapter.send_req(conn),
+             {:ok, conn} <- decode_resp_body(conn) do
+          {:ok, conn}
+       end
       end
 
       def request!(conn, opts \\ []) do
         case request(conn, opts) do
           {:ok, response} -> response
           {:error, error} -> raise error
+        end
+      end
+
+      defp encode_req_body(%{req_body: ""} = conn), do: {:ok, conn}
+      defp encode_req_body(%{req_body: body} = conn) when body == %{} do
+        {:ok, %{conn | req_body: ""}}
+      end
+      defp encode_req_body(%{req_body: body, req_headers: headers} = conn) do
+        case get_content_type(headers) do
+          "application/x-www-form-urlencoded" ->
+            {:ok, %{conn | req_body: URI.encode_query(body)}}
+          content_type ->
+            if serializer = get_serializer(content_type) do
+              {:ok, %{conn | req_body: serializer.encode!(body)}}
+            else
+              {:ok, conn}
+            end
+        end
+      end
+
+      defp decode_resp_body(%{resp_body: ""} = conn), do: {:ok, conn}
+      defp decode_resp_body(%{resp_body: " "} = conn), do: {:ok, conn}
+      defp decode_resp_body(%{resp_body: body, resp_headers: headers} = conn) do
+        case get_content_type(headers) do
+          "application/x-www-form-urlencoded" ->
+            {:ok, %{conn | resp_body: URI.decode_query(body)}}
+          content_type ->
+            if serializer = get_serializer(content_type) do
+              {:ok, %{conn | resp_body: serializer.decode!(body)}}
+            else
+              {:ok, conn}
+            end
+        end
+      end
+
+      defp get_serializer(content_type) do
+        Application.get_env(:revolver, :serializers)[content_type]
+      end
+
+      defp get_content_type(headers) do
+        case List.keyfind(headers, "content-type", 0) do
+          {"content-type", ct} ->
+            case Plug.Conn.Utils.content_type(ct) do
+              {:ok, type, subtype, _} ->
+                "#{type}/#{subtype}"
+              :error ->
+                nil
+            end
+          nil ->
+            nil
         end
       end
     end

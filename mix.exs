@@ -15,15 +15,17 @@ defmodule Revolver.Mixfile do
 
   def application do
     [mod: {Revolver, []},
-     env: [default_ports: [{"ws", 80}, {"wss", 443}]],
-     applications: []]
+     env: [default_ports: [{"ws", 80}, {"wss", 443}],
+           serializers: %{"application/json" => Poison}],
+     applications: [:logger, :plug]]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
-    [{:hackney, "~> 1.6", only: :test, optional: true},
+    [{:plug, "~> 1.2-rc", override: true},
+     {:hackney, "~> 1.6", only: :test, optional: true},
 
      # Test dependencies
      {:bypass, "~> 0.5", only: :test},

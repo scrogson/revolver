@@ -19,12 +19,14 @@ defmodule Revolver.Adapters.HackneyTest do
       end
 
       {:ok, conn} = User.list_users
-      assert conn.resp_body == ~s<{"data": []}>
+      assert conn.resp_body == %{"data" => []}
       assert ["application/json; charset=utf-8"] == Revolver.Conn.get_resp_header(conn, "content-type")
     end
 
     test "POST request", %{server: server} do
       Bypass.expect server, fn conn ->
+        {:ok, body, conn} = Plug.Conn.read_body(conn)
+        assert body == ~s<{"username":"scrogson","password":"passw0rd"}>
         assert conn.request_path == "/users"
         assert conn.method == "POST"
         assert ["application/json"] == Plug.Conn.get_req_header(conn, "accept")
@@ -36,7 +38,7 @@ defmodule Revolver.Adapters.HackneyTest do
         |> Plug.Conn.resp(201, "")
       end
 
-      {:ok, conn} = User.create_user("abc123", %{})
+      {:ok, conn} = User.create_user("abc123", %{username: "scrogson", password: "passw0rd"})
       assert conn.status == 201
       assert conn.resp_body == ""
       assert ["application/json; charset=utf-8"] == Revolver.Conn.get_resp_header(conn, "content-type")
@@ -75,9 +77,13 @@ defmodule Revolver.Adapters.HackneyTest do
 
       def create_user(token, params \\ %{}) do
         conn("/users")
-        |> put_req_header("authorization", "Bearer " <> token)
-        #|> put_req_body(params)
+        |> put_authorization(token)
+        |> put_req_body(params)
         |> post
+      end
+
+      defp put_authorization(conn, token) do
+        put_req_header(conn, "authorization", "Bearer " <> token)
       end
     end
 
