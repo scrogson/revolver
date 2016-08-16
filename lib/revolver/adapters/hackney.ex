@@ -25,7 +25,7 @@ defmodule Revolver.Adapters.Hackney do
     {:ok, body} = :hackney.body(state)
     {:ok, %{conn | adapter: {mod, state},
                    resp_body: body,
-                   resp_headers: resp_headers,
+                   resp_headers: normalize_headers(resp_headers),
                    status: status}}
   end
 
@@ -33,6 +33,13 @@ defmodule Revolver.Adapters.Hackney do
     do: conn.req_path
   defp req_path(%Revolver.Conn{req_path: path, query_params: query}),
     do: URI.to_string(%URI{path: path, query: Plug.Conn.Query.encode(query)})
+
+  defp normalize_headers(headers),
+    do: normalize_headers(headers, [])
+  defp normalize_headers([], acc),
+    do: acc
+  defp normalize_headers([{k, v}|t], acc),
+    do: normalize_headers(t, [{String.downcase(k), v} | acc])
 
   defp transport("http"), do: :hackney_tcp_transport
   defp transport("https"), do: :hackney_ssl_transport
