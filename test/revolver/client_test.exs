@@ -10,7 +10,7 @@ defmodule Revolver.ClientTest do
       exports = TestClient.__info__(:exports)
       find_exports = fn key -> Enum.filter(exports, fn {k, _} -> key == k end) end
 
-      assert [conn: 1] == find_exports.(:conn)
+      assert [conn: 1, conn: 2] == find_exports.(:conn)
 
       assert [get: 1, get: 2] == find_exports.(:get)
       assert [get!: 1, get!: 2] == find_exports.(:get!)
@@ -64,7 +64,7 @@ defmodule Revolver.ClientTest do
 
   defp define_modules(context) do
     defmodule TestAdapter do
-      def conn(config) do
+      def conn(config, _opts) do
         %URI{scheme: scheme, host: host, port: port} = URI.parse(config[:endpoint])
         req_headers = config[:headers] || []
         req_path = config[:req_path]
@@ -80,7 +80,7 @@ defmodule Revolver.ClientTest do
         }
       end
 
-      def send_req(conn) do
+      def send_req(conn, _opts) do
         {:ok, conn}
       end
     end

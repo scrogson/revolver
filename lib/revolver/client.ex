@@ -34,13 +34,13 @@ defmodule Revolver.Client do
       def config, do: @config
       def adapter, do: @adapter
 
-      def conn(path) do
-        @adapter.conn(Keyword.merge(@config, [req_path: path]))
+      def conn(path, opts \\ []) do
+        @adapter.conn(Keyword.merge(@config, [req_path: path]), opts)
       end
 
       def request(conn, opts \\ []) do
         with {:ok, conn} <- encode_req_body(conn),
-             {:ok, conn} <- @adapter.send_req(conn),
+             {:ok, conn} <- @adapter.send_req(conn, opts),
              {:ok, conn} <- decode_resp_body(conn) do
           {:ok, conn}
         end

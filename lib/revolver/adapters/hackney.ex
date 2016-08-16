@@ -1,12 +1,12 @@
 defmodule Revolver.Adapters.Hackney do
   import Revolver.Conn
 
-  def conn(config) do
+  def conn(config, opts \\ []) do
     %URI{scheme: scheme, host: host, port: port} = URI.parse(config[:endpoint])
     req_headers = config[:headers] || []
     req_path = config[:req_path]
 
-    {:ok, state} = :hackney.connect(transport(scheme), host, port, [])
+    {:ok, state} = :hackney.connect(transport(scheme), host, port, opts)
 
     %Revolver.Conn{
       adapter: {__MODULE__, state},
@@ -19,7 +19,7 @@ defmodule Revolver.Adapters.Hackney do
     }
   end
 
-  def send_req(%Revolver.Conn{adapter: {mod, state}} = conn) do
+  def send_req(%Revolver.Conn{adapter: {mod, state}} = conn, opts \\ []) do
     req_data = {conn.method, req_path(conn), conn.req_headers, conn.req_body}
     {:ok, status, resp_headers, state} = :hackney.send_request(state, req_data)
     {:ok, body} = :hackney.body(state)
