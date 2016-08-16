@@ -29,7 +29,7 @@ defmodule Revolver.Adapters.Hackney do
                    status: status}}
   end
 
-  defp req_path(%Revolver.Conn{query_params: query} = conn) when query == %{},
+  defp req_path(%Revolver.Conn{query_params: nil} = conn),
     do: conn.req_path
   defp req_path(%Revolver.Conn{req_path: path, query_params: query}),
     do: URI.to_string(%URI{path: path, query: Plug.Conn.Query.encode(query)})

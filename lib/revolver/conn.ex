@@ -14,7 +14,7 @@ defmodule Revolver.Conn do
             owner:           nil,
             port:            0,
             private:         %{},
-            query_params:    %{},
+            query_params:    nil,
             query_string:    nil,
             req_body:        "",
             req_cookies:     %{},
@@ -27,8 +27,8 @@ defmodule Revolver.Conn do
             state:           :unset,
             status:          nil
 
-  def put_query(%Conn{} = conn, query) when is_map(query) do
-    %{conn | query_params: query}
+  def put_query(%Conn{} = conn, kv) do
+    %{conn | query_params: kv}
   end
 
   def put_req_header(%Conn{req_headers: headers} = conn, key, value) do
