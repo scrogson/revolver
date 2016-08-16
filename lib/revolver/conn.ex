@@ -12,11 +12,10 @@ defmodule Revolver.Conn do
             host:            "www.example.com",
             method:          :get,
             owner:           nil,
-            params:          %{},
             port:            0,
             private:         %{},
             query_params:    %{},
-            query_string:    "",
+            query_string:    nil,
             req_body:        "",
             req_cookies:     %{},
             req_headers:     [],
@@ -27,6 +26,10 @@ defmodule Revolver.Conn do
             scheme:          "http",
             state:           :unset,
             status:          nil
+
+  def put_query(%Conn{} = conn, query) when is_map(query) do
+    %{conn | query_params: query}
+  end
 
   def put_req_header(%Conn{req_headers: headers} = conn, key, value) do
     %{conn | req_headers: List.keystore(headers, key, 0, {key, value})}

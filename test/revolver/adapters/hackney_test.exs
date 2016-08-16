@@ -23,6 +23,22 @@ defmodule Revolver.Adapters.HackneyTest do
       assert ["application/json; charset=utf-8"] == Revolver.Conn.get_resp_header(conn, "content-type")
     end
 
+    test "GET request with query params", %{server: server} do
+      Bypass.expect server, fn conn ->
+        assert conn.request_path == "/users"
+        assert conn.query_string == "foo=bar"
+        assert conn.method == "GET"
+
+        conn
+        |> Plug.Conn.put_resp_content_type("application/json")
+        |> Plug.Conn.resp(200, ~s<{"data": []}>)
+      end
+
+      {:ok, conn} = User.list_users(%{foo: "bar"})
+      assert conn.resp_body == %{"data" => []}
+      assert ["application/json; charset=utf-8"] == Revolver.Conn.get_resp_header(conn, "content-type")
+    end
+
     test "POST request", %{server: server} do
       Bypass.expect server, fn conn ->
         {:ok, body, conn} = Plug.Conn.read_body(conn)
@@ -50,7 +66,7 @@ defmodule Revolver.Adapters.HackneyTest do
 
     bypass = Bypass.open
 
-    Application.put_env(:test_app, Revolver.Adapters.HackneyTest.TestClient, [
+    Application.put_env(:test_app, TestClient, [
       adapter: Revolver.Adapters.Hackney,
       endpoint: "http://localhost:#{bypass.port}",
       headers: [
@@ -71,8 +87,10 @@ defmodule Revolver.Adapters.HackneyTest do
       import TestClient
       import Revolver.Conn
 
-      def list_users do
-        get conn("/users")
+      def list_users(query \\ %{}) do
+        conn("/users")
+        |> put_query(query)
+        |> get
       end
 
       def create_user(token, params \\ %{}) do

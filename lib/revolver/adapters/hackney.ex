@@ -20,7 +20,7 @@ defmodule Revolver.Adapters.Hackney do
   end
 
   def send_req(%Revolver.Conn{adapter: {mod, state}} = conn) do
-    req_data = {conn.method, conn.req_path, conn.req_headers, conn.req_body}
+    req_data = {conn.method, req_path(conn), conn.req_headers, conn.req_body}
     {:ok, status, resp_headers, state} = :hackney.send_request(state, req_data)
     {:ok, body} = :hackney.body(state)
     {:ok, %{conn | adapter: {mod, state},
@@ -28,6 +28,11 @@ defmodule Revolver.Adapters.Hackney do
                    resp_headers: resp_headers,
                    status: status}}
   end
+
+  defp req_path(%Revolver.Conn{query_params: query} = conn) when query == %{},
+    do: conn.req_path
+  defp req_path(%Revolver.Conn{req_path: path, query_params: query}),
+    do: URI.to_string(%URI{path: path, query: Plug.Conn.Query.encode(query)})
 
   defp transport("http"), do: :hackney_tcp_transport
   defp transport("https"), do: :hackney_ssl_transport
