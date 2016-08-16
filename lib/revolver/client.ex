@@ -43,7 +43,7 @@ defmodule Revolver.Client do
              {:ok, conn} <- @adapter.send_req(conn),
              {:ok, conn} <- decode_resp_body(conn) do
           {:ok, conn}
-       end
+        end
       end
 
       def request!(conn, opts \\ []) do
