@@ -5,12 +5,15 @@ defmodule Revolver.Mixfile do
 
   def project do
     [app: :revolver,
+     name: "Revolver",
      version: @version,
      elixir: "~> 1.3",
      elixirc_paths: elixirc_paths(Mix.env),
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps()]
+     deps: deps(),
+     description: description(),
+     package: package()]
   end
 
   def application do
@@ -33,5 +36,16 @@ defmodule Revolver.Mixfile do
 
      # Documentation dependencies
      {:ex_doc, "~> 0.14", only: :dev}]
+  end
+
+  defp description do
+    "A composable HTTP Client inspired by Plug and Ecto."
+  end
+
+  defp package do
+    [files: ["lib", "mix.exs", "README.md", "LICENSE"],
+     maintainers: ["Sonny Scroggin"],
+     licenses: ["Apache 2.0"],
+     links: %{github: "https://github.com/scrogson/revolver"}]
   end
 end

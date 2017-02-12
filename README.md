@@ -1,9 +1,10 @@
 Revolver
 ========
 
-An Elixir HTTP Client inspired by [Plug].
+An Elixir HTTP Client inspired by [Plug] and [Ecto].
 
-> **WARNING:** This library is not ready for use, so don't use it yet.
+> **WARNING:** This library is under early development. The API may change
+> frequently until it reaches 1.0.
 
 The library is currently an experiment. The goal is to create something that is
 very composeable, like [Plug]. It will provide adapters for different Erlang
@@ -25,7 +26,7 @@ defmodule GitHub.Repos do
   """
   def list!(user) do
     conn()
-    |>get!("/users/#{user}/repos")
+    |> get!("/users/#{user}/repos")
   end
 
   @doc """
@@ -67,4 +68,10 @@ conn.resp_body
 #=> [%{...}, %{...}]
 ```
 
+## LICENSE
+
+See [LICENSE]
+
 [Plug]: https://github.com/elixir-lang/plug
+[Ecto]: https://github.com/elixir-ecto/ecto
+[LICENSE]: https://github.com/scrogson/revolver/blob/master/LICENSE
