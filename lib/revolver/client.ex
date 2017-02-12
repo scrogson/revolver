@@ -14,12 +14,12 @@ defmodule Revolver.Client do
   defp generate_http_functions do
     for method <- @methods do
       quote do
-        def unquote(method)(conn, opts \\ []) do
-          request(%{conn | method: unquote(method)}, opts)
+        def unquote(method)(conn, path, opts \\ []) do
+          request(%{conn | method: unquote(method)}, path, opts)
         end
 
-        def unquote(String.to_atom(to_string(method) <> "!"))(conn, opts \\ []) do
-          request!(%{conn | method: unquote(method)}, opts)
+        def unquote(String.to_atom(to_string(method) <> "!"))(conn, path, opts \\ []) do
+          request!(%{conn | method: unquote(method)}, path, opts)
         end
       end
     end
@@ -34,20 +34,20 @@ defmodule Revolver.Client do
       def config, do: @config
       def adapter, do: @adapter
 
-      def conn(path, opts \\ []) do
-        @adapter.conn(Keyword.merge(@config, [req_path: path]), opts)
+      def conn(opts \\ []) do
+        @adapter.conn(@config, opts)
       end
 
-      def request(conn, opts \\ []) do
+      def request(conn, path, opts \\ []) do
         with {:ok, conn} <- encode_req_body(conn),
-             {:ok, conn} <- @adapter.send_req(conn, opts),
+             {:ok, conn} <- @adapter.send_req(conn, path, opts),
              {:ok, conn} <- decode_resp_body(conn) do
           {:ok, conn}
         end
       end
 
-      def request!(conn, opts \\ []) do
-        case request(conn, opts) do
+      def request!(conn, path, opts \\ []) do
+        case request(conn, path, opts) do
           {:ok, response} -> response
           {:error, error} -> raise error
         end

@@ -24,15 +24,14 @@ defmodule Revolver.Mixfile do
   defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
-    [{:plug, "~> 1.2-rc", override: true},
+    [{:plug, "~> 1.3"},
      {:hackney, "~> 1.6", only: :test, optional: true},
 
      # Test dependencies
-     {:bypass, "~> 0.5", only: :test},
-     {:poison, "~> 2.0", only: :test},
+     {:bypass, "~> 0.6", only: :test},
+     {:poison, "~> 3.0", only: :test},
 
      # Documentation dependencies
-     {:ex_doc, ">= 0.0.0", only: :dev},
-     {:earmark, ">= 0.0.0", only: :dev}]
+     {:ex_doc, "~> 0.14", only: :dev}]
   end
 end

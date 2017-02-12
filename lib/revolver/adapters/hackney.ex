@@ -2,7 +2,7 @@ defmodule Revolver.Adapters.Hackney do
   import Revolver.Conn
 
   def conn(config, opts \\ []) do
-    %URI{scheme: scheme, host: host, port: port} = URI.parse(config[:endpoint])
+    %URI{scheme: scheme, host: host, port: port} = URI.parse(config[:host])
     req_headers = config[:headers] || []
     req_path = config[:req_path]
 
@@ -19,8 +19,8 @@ defmodule Revolver.Adapters.Hackney do
     }
   end
 
-  def send_req(%Revolver.Conn{adapter: {mod, state}} = conn, opts \\ []) do
-    req_data = {conn.method, req_path(conn), conn.req_headers, conn.req_body}
+  def send_req(%Revolver.Conn{adapter: {mod, state}} = conn, path, opts \\ []) do
+    req_data = {conn.method, req_path(conn, path), conn.req_headers, conn.req_body}
     {:ok, status, resp_headers, state} = :hackney.send_request(state, req_data)
     {:ok, body} = :hackney.body(state)
     {:ok, %{conn | adapter: {mod, state},
@@ -29,9 +29,9 @@ defmodule Revolver.Adapters.Hackney do
                    status: status}}
   end
 
-  defp req_path(%Revolver.Conn{query_params: nil} = conn),
-    do: conn.req_path
-  defp req_path(%Revolver.Conn{req_path: path, query_params: query}),
+  defp req_path(%Revolver.Conn{query_params: nil} = conn, path),
+    do: path
+  defp req_path(%Revolver.Conn{query_params: query}, path),
     do: URI.to_string(%URI{path: path, query: Plug.Conn.Query.encode(query)})
 
   defp normalize_headers(headers),

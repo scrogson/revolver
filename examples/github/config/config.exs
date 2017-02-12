@@ -8,7 +8,7 @@ config :revolver,
 
 config :github, GitHub,
   adapter: Revolver.Adapters.Hackney,
-  endpoint: "https://api.github.com",
+  host: "https://api.github.com",
   headers: [
     {"accept", "application/vnd.github.v3+json"},
     {"content-type", "application/json"}

@@ -68,7 +68,7 @@ defmodule Revolver.Adapters.HackneyTest do
 
     Application.put_env(:test_app, TestClient, [
       adapter: Revolver.Adapters.Hackney,
-      endpoint: "http://localhost:#{bypass.port}",
+      host: "http://localhost:#{bypass.port}",
       headers: [
         {"accept", "application/json"},
         {"content-type", "application/json"}
@@ -88,16 +88,16 @@ defmodule Revolver.Adapters.HackneyTest do
       import Revolver.Conn
 
       def list_users(query \\ %{}) do
-        conn("/users")
+        conn()
         |> put_query(query)
-        |> get
+        |> get("/users")
       end
 
       def create_user(token, params \\ %{}) do
-        conn("/users")
+        conn()
         |> put_authorization(token)
         |> put_req_body(params)
-        |> post
+        |> post("/users")
       end
 
       defp put_authorization(conn, token) do
